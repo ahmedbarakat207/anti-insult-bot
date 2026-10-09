@@ -10,6 +10,8 @@ import html
 import logging
 from datetime import datetime, timedelta, timezone
 
+import os
+
 from telegram import Update, ChatPermissions
 from telegram.constants import ChatType, ParseMode
 from telegram.error import TelegramError
@@ -19,9 +21,14 @@ from telegram.ext import (
     CommandHandler,
     ContextTypes,
     MessageHandler,
-    AIORateLimiter,
     filters,
 )
+
+# Optional rate limiter import with graceful fallback
+try:
+    from telegram.ext import AIORateLimiter
+except ImportError:
+    AIORateLimiter = None
 
 from config import Config, validate_config
 from filter import InsultDetector
@@ -375,6 +382,38 @@ async def message_filter_handler(update: Update, context: ContextTypes.DEFAULT_T
         logger.warning(f"Could not send warning message in {chat.id}: {e}")
 
 
+async def start_health_server():
+    """Starts a minimal HTTP server to satisfy Render/cloud port binding health checks."""
+    port_str = os.getenv("PORT")
+    if not port_str:
+        return
+    try:
+        port = int(port_str)
+        async def handle_request(reader, writer):
+            await reader.read(256)
+            response = (
+                b"HTTP/1.1 200 OK\r\n"
+                b"Content-Type: text/plain\r\n"
+                b"Content-Length: 15\r\n"
+                b"Connection: close\r\n\r\n"
+                b"Bot is healthy!"
+            )
+            writer.write(response)
+            await writer.drain()
+            writer.close()
+            await writer.wait_closed()
+
+        await asyncio.start_server(handle_request, "0.0.0.0", port)
+        logger.info(f"Health check HTTP server started on port {port}")
+    except Exception as e:
+        logger.warning(f"Could not start health check server on port {port_str}: {e}")
+
+
+async def post_init(application: Application):
+    """Called after application initializes, starts cloud health server if needed."""
+    await start_health_server()
+
+
 def main():
     """Starts the Telegram bot polling service."""
     if not validate_config():
@@ -389,16 +428,27 @@ def main():
         return
 
     print("🤖 Starting Telegram Insult Blocker Bot...")
-    # High-performance, concurrent application with rate limiting
-    application = (
+    
+    # Safe rate limiter initialization (fallback gracefully if aiolimiter is missing)
+    rate_limiter = None
+    if AIORateLimiter is not None:
+        try:
+            rate_limiter = AIORateLimiter()
+        except (ImportError, RuntimeError) as e:
+            logger.info(f"AIORateLimiter disabled: {e}")
+
+    builder = (
         ApplicationBuilder()
         .token(Config.BOT_TOKEN)
         .concurrent_updates(True)      # Process high-volume updates concurrently
         .connection_pool_size(16)      # Expand connection pool for speed
         .get_updates_read_timeout(60.0)# Prevent timeout disconnects during long polling
-        .rate_limiter(AIORateLimiter())# Automatic flood control & host API rate limit compliance (<60 req/min)
-        .build()
+        .post_init(post_init)          # Binds to $PORT for Render/cloud deployment
     )
+    if rate_limiter:
+        builder.rate_limiter(rate_limiter)
+
+    application = builder.build()
 
     # Register commands
     application.add_handler(CommandHandler("start", start_command))
