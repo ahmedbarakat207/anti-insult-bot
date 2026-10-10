@@ -9,15 +9,15 @@ A high-performance Telegram moderation bot built with **Python 3** and `python-t
 - 🚫 **Multi-Dialect Coverage**:
   - **English**: Swear words, profanities, derogatory slurs, and abusive phrases.
   - **Standard Arabic (الفصحى)**: شتائم فصحى، إهانات، قذف، وألفاظ نابية.
-  - **Egyptian Arabic (المصري)**: شتائم الأهل والأعراض، السباب الدارج (كسم، عرص، متناك، شرموطة، احا، خول، علق، إلخ).
-  - **Egyptian Franco / Arabizi**: الشتائم المكتوبة بحروف وأرقام فرانكو (`kosom`, `3ars`, `a7a`, `metnak`, `sharmouta`, `manyook`, `5ol`, etc.).
+  - **Egyptian Arabic (المصري)**: شتائم الأهل والأعراض، السباب الدارج (**م، عر*، م**ا*، ***و*ة، ا*ا، *ول، ع**، إلخ).
+  - **Egyptian Franco / Arabizi**: الشتائم المكتوبة بحروف وأرقام فرانكو (`ko*om`, `3**s`, `a*a`, `me***k`, `sh****ta`, `ma****k`, `*ol`, etc.).
 - 🛡️ **Anti-Evasion & Bypass Defense**:
-  - **Arabic Diacritics & Tatweel**: Strips Harakat (`شَـرْمُـوطَـة` -> `شرموطة`) and Tatweel/Kashida.
-  - **Letter Repetition Collapse**: Handles elongated words (`احاااااااا` -> `احا`, `fuuuuuck` -> `fuck`, `عرررررص` -> `عرص`).
-  - **Spaced & Dotted Words**: Catches intentionally separated letters (`f u c k`, `f.u.c.k`, `ك س م ك`, `ك.س.م.ك`).
+  - **Arabic Diacritics & Tatweel**: Strips Harakat (`شَـرْ*ـ**ـة` -> `ش***ة`) and Tatweel/Kashida.
+  - **Letter Repetition Collapse**: Handles elongated words (`ا**اا**اا` -> `احا`, `f*****ck` -> `f**k`, `عرر***` -> `عر`).
+  - **Spaced & Dotted Words**: Catches intentionally separated letters (`f ** k`, `f.*.*.k`, `ك * * ك`, `ك.*.*.ك`).
   - **Leetspeak Obfuscation**: Detects `@`, `$`, `!`, `*`, `1`, `0` replacements (`f*ck`, `sh!t`, `b!tch`, `a$$hole`).
 - 🎯 **False-Positive Guard**:
-  - Built-in whitelisting prevents accidental triggers on safe words (e.g., `كسكسي` / `couscous`, `فرصة`, `تعليق`, `أحياء`, `أحكام`, `classic`, `pass`, `assistant`).
+  - Built-in whitelisting prevents accidental triggers on safe words (e.g., `ك*ك*ي` / `couscous`, `فرصة`, `تعليق`, `أحياء`, `أحكام`, `classic`, `pass`, `assistant`).
 - ⚡ **Strict 2-Tier Enforcement System**:
   - **Instant Deletion**: Offending message or media caption is immediately deleted.
   - **1st Insult (Strike 1/2)**: The user is **muted for 1 day (24 hours)** with a firm warning that the next offense leads to a permanent ban.
